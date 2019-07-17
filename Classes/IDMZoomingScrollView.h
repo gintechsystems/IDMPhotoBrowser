@@ -7,18 +7,20 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+
+#import "DACircularProgressView.h"
+
 #import "IDMPhotoProtocol.h"
 #import "IDMTapDetectingImageView.h"
 #import "IDMTapDetectingView.h"
 
-#import <DACircularProgress/DACircularProgressView.h>
-
 @class IDMPhotoBrowser, IDMPhoto, IDMCaptionView;
 
-@interface IDMZoomingScrollView : UIScrollView <UIScrollViewDelegate, IDMTapDetectingImageViewDelegate, IDMTapDetectingViewDelegate, UIDragInteractionDelegate> {
+@interface IDMZoomingScrollView : UIScrollView <UIScrollViewDelegate, IDMTapDetectingImageViewDelegate, IDMTapDetectingViewDelegate> {
 	
 	IDMPhotoBrowser *__weak _photoBrowser;
-    id<IDMPhoto> _photo;
+    IDMPhoto *_photo;
 	
     // This view references the related caption view for simplified handling in photo browser
     IDMCaptionView *_captionView;
@@ -26,12 +28,17 @@
 	IDMTapDetectingView *_tapView; // for background taps
     
     DACircularProgressView *_progressView;
+    
+    UIView *_topBackgroundView;
 }
 
 @property (nonatomic, strong) IDMTapDetectingImageView *photoImageView;
 @property (nonatomic, strong) IDMCaptionView *captionView;
 @property (nonatomic, strong) id<IDMPhoto> photo;
+
 @property (nonatomic) CGFloat maximumDoubleTapZoomScale;
+
+@property (nonatomic, strong) UIView *topBackgroundView;
 
 - (id)initWithPhotoBrowser:(IDMPhotoBrowser *)browser;
 - (void)displayImage;
@@ -39,5 +46,7 @@
 - (void)setProgress:(CGFloat)progress forPhoto:(IDMPhoto*)photo;
 - (void)setMaxMinZoomScalesForCurrentBounds;
 - (void)prepareForReuse;
+
+- (void)addGradientTopLayer:(CGSize)viewSize;
 
 @end

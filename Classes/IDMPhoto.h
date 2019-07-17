@@ -6,9 +6,12 @@
 //  Copyright 2010 d3i. All rights reserved.
 //
 
+#import <AVFoundation/AVFoundation.h>
 #import <Foundation/Foundation.h>
-#import "IDMPhotoProtocol.h"
+
 #import <SDWebImage/SDWebImageManager.h>
+
+#import "IDMPhotoProtocol.h"
 
 // This class models a photo/image and it's caption
 // If you want to handle photos, caching, decompression
@@ -21,9 +24,21 @@ typedef void (^IDMProgressUpdateBlock)(CGFloat progress);
 
 // Properties
 @property (nonatomic, strong) NSString *caption;
+
+@property (nonatomic) BOOL isVideo;
+@property (nonatomic) BOOL isVideoImageReady;
+@property (nonatomic) BOOL isPlaying;
+
 @property (nonatomic, strong) NSURL *photoURL;
+@property (nonatomic, strong) NSURL *videoURL;
+
 @property (nonatomic, strong) IDMProgressUpdateBlock progressUpdateBlock;
+
 @property (nonatomic, strong) UIImage *placeholderImage;
+
+@property (nonatomic, strong) UIImage *underlyingImage;
+
+@property (nonatomic, strong) UIImageView *playButton;
 
 // Class
 + (IDMPhoto *)photoWithImage:(UIImage *)image;

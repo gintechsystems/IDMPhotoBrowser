@@ -59,7 +59,7 @@ extension MenuViewController {
 // MARK: Actions
 
 extension MenuViewController {
-	func buttonWithImageOnScreenPressed(sender: AnyObject) {
+    @objc func buttonWithImageOnScreenPressed(sender: AnyObject) {
 		let buttonSender = sender as? UIButton
 		
 		// Create an array to store IDMPhoto objects
@@ -102,9 +102,7 @@ extension MenuViewController {
 		browser.displayActionButton = false
 		browser.displayArrowButton = true
 		browser.displayCounterLabel = true
-		browser.usePopAnimation = true
 		browser.scaleImage = buttonSender?.currentImage
-		browser.dismissOnTouch = true
 		
 		// Show
 		self.present(browser, animated: true, completion: nil)
@@ -234,10 +232,6 @@ extension MenuViewController {
 				browser?.actionButtonTitles      = ["Option 1", "Option 2", "Option 3", "Option 4"]
 				browser?.displayCounterLabel     = true
 				browser?.useWhiteBackgroundColor = true
-				browser?.leftArrowImage          = UIImage.init(named: "IDMPhotoBrowser_customArrowLeft.png")
-				browser?.rightArrowImage         = UIImage.init(named: "IDMPhotoBrowser_customArrowRight.png")
-				browser?.leftArrowSelectedImage  = UIImage.init(named: "IDMPhotoBrowser_customArrowLeftSelected.png")
-				browser?.rightArrowSelectedImage = UIImage.init(named: "IDMPhotoBrowser_customArrowRightSelected.png")
 				browser?.doneButtonImage         = UIImage.init(named: "IDMPhotoBrowser_customDoneButton.png")
 				browser?.view.tintColor          = UIColor.orange
 				browser?.progressTintColor       = UIColor.orange
@@ -274,6 +268,11 @@ extension MenuViewController {
 		let photo: IDMPhoto = photoBrowser.photo(at: buttonIndex) as! IDMPhoto
 		print("Did dismiss photoBrowser with photo index: \(buttonIndex), photo caption: \(photo.caption)")
 		
-		UIAlertView(title: "Option \(buttonIndex+1)", message: nil, delegate: nil, cancelButtonTitle: "OK").show()
+        let alertController = UIAlertController(title: "Option \(buttonIndex+1)", message: nil, preferredStyle: .alert)
+        
+        let cancelAction = UIAlertAction(title: "OK", style: .cancel, handler: nil)
+        alertController.addAction(cancelAction)
+        
+        present(alertController, animated: true, completion: nil)
 	}
 }

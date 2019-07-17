@@ -27,20 +27,23 @@ static const CGFloat labelPadding = 10;
 - (id)initWithPhoto:(id<IDMPhoto>)photo {
     CGRect screenBound = [[UIScreen mainScreen] bounds];
     CGFloat screenWidth = screenBound.size.width;
+    CGFloat screenHeight = screenBound.size.height;
     
     if ([[UIDevice currentDevice] orientation] == UIDeviceOrientationLandscapeLeft ||
         [[UIDevice currentDevice] orientation] == UIDeviceOrientationLandscapeRight) {
         screenWidth = screenBound.size.height;
     }
     
-    self = [super initWithFrame:CGRectMake(0, 0, screenWidth, 44)]; // Random initial frame
+    self = [super initWithFrame:CGRectMake(0, screenHeight/2, screenWidth, 44)]; // Random initial frame
     if (self) {
         _photo = photo;
         self.opaque = NO;
         
-        [self setBackground];
-        
-        [self setupCaption];
+        if ([_photo caption].length > 0)
+        {
+            [self setupCaption];
+            [self setBackground];
+        }
     }
     
     return self;
@@ -53,9 +56,9 @@ static const CGFloat labelPadding = 10;
     if (_label.numberOfLines > 0) maxHeight = _label.font.leading*_label.numberOfLines;
     
     /*CGSize textSizeOLD = [_label.text sizeWithFont:_label.font
-                              constrainedToSize:CGSizeMake(size.width - labelPadding*2, maxHeight)
-                                  lineBreakMode:_label.lineBreakMode];*/
-
+     constrainedToSize:CGSizeMake(size.width - labelPadding*2, maxHeight)
+     lineBreakMode:_label.lineBreakMode];*/
+    
     CGFloat width = size.width - labelPadding*2;
     
     CGFloat height = [_label sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)].height;
@@ -63,7 +66,7 @@ static const CGFloat labelPadding = 10;
 }
 
 - (void)setupCaption {
-    _label = [[UILabel alloc] initWithFrame:CGRectMake(labelPadding, 0, 
+    _label = [[UILabel alloc] initWithFrame:CGRectMake(labelPadding, 0,
                                                        self.bounds.size.width-labelPadding*2,
                                                        self.bounds.size.height)];
     _label.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
@@ -87,7 +90,7 @@ static const CGFloat labelPadding = 10;
     UIView *fadeView = [[UIView alloc] initWithFrame:CGRectMake(0, -100, 10000, 130+100)]; // Static width, autoresizingMask is not working
     CAGradientLayer *gradient = [CAGradientLayer layer];
     gradient.frame = fadeView.bounds;
-    gradient.colors = [NSArray arrayWithObjects:(id)[[UIColor colorWithWhite:0 alpha:0.0] CGColor], (id)[[UIColor colorWithWhite:0 alpha:0.8] CGColor], nil];
+    //gradient.colors = [NSArray arrayWithObjects:(id)[[UIColor colorWithWhite:0 alpha:0.0] CGColor], (id)[[UIColor colorWithWhite:0 alpha:0.8] CGColor], nil];
     [fadeView.layer insertSublayer:gradient atIndex:0];
     fadeView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight; //UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin;
     [self addSubview:fadeView];
