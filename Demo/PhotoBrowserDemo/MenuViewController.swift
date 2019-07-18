@@ -121,7 +121,7 @@ extension MenuViewController {
 		case 0:
 			return 1
 		case 1:
-			return 3
+			return 4
 		case 2:
 			return 0
 		default:
@@ -161,6 +161,8 @@ extension MenuViewController {
 				cell?.textLabel?.text = "Photos from Flickr"
 			case 2:
 				cell?.textLabel?.text = "Photos from Flickr - Custom"
+            case 3:
+                cell?.textLabel?.text = "Video"
 			default:
 				break
 			}
@@ -217,7 +219,24 @@ extension MenuViewController {
 				let photosWithURL: [IDMPhoto] = IDMPhoto.photos(withURLs: photosWithURLArray) as! [IDMPhoto]
 				
 				photos = photosWithURL
-			}
+            } else if indexPath.row == 3 { // Videos
+                let video1 = IDMPhoto(url: URL(string: "https://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4")!)!
+                video1.caption = "Big Buck Bunny — by THE PEACH OPEN MOVIE PROJECT"
+                
+                let photo1 = IDMPhoto(url: URL(string: "http://farm4.static.flickr.com/3590/3329114220_5fbc5bc92b_b.jpg")!)!
+                photo1.caption = "A standard picture separating two videos"
+                
+                let video2 = IDMPhoto(url: URL(string: "https://staging.coverr.co/s3/mp4/Playful.mp4")!)!
+                video2.caption = "A cover coming straight from coverr.co for an example"
+                
+                let videos: [IDMPhoto] = [
+                    video1,
+                    photo1,
+                    video2
+                ]
+                
+                photos = videos
+            }
 		}
 
 		// Create and setup browser

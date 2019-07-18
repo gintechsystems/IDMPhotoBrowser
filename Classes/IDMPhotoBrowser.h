@@ -11,7 +11,7 @@
 #import <MessageUI/MessageUI.h>
 #import <UIKit/UIKit.h>
 
-#import <VIMediaCache.h>
+#import "VIMediaCache.h"
 
 #import "IDMCaptionView.h"
 #import "IDMPhoto.h"
