@@ -11,8 +11,6 @@
 #import <MessageUI/MessageUI.h>
 #import <UIKit/UIKit.h>
 
-#import "VIMediaCache.h"
-
 #import "IDMCaptionView.h"
 #import "IDMPhoto.h"
 #import "IDMPhotoProtocol.h"
@@ -77,9 +75,7 @@
 
 @property (nonatomic) AVPlayer *videoPlayer;
 @property (nonatomic) AVPlayerViewController *videoPlayerVC;
-
-@property (nonatomic) VIResourceLoaderManager *loaderManager;
-
+    
 
 // Init
 - (id)initWithPhotos:(NSArray *)photosArray;

@@ -14,6 +14,8 @@
 
 #import "pop/POP.h"
 
+#import "VIMediaCache.h"
+
 #ifndef IDMPhotoBrowserLocalizedStrings
 #define IDMPhotoBrowserLocalizedStrings(key) \
 NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBundle bundleForClass: [IDMPhotoBrowser class]] pathForResource:@"IDMPBLocalizations" ofType:@"bundle"]], nil)
@@ -46,7 +48,6 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     UILabel *_counterLabel;
     
     // Actions
-    UIActionSheet *_actionsSheet;
     UIActivityViewController *activityViewController;
     
     // Control
@@ -72,11 +73,12 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     CGRect _senderViewOriginalFrame;
     //UIImage *_backgroundScreenshot;
     
+    VIResourceLoaderManager *loaderManager;
+    
     UIWindow *_applicationWindow;
 }
 
 // Private Properties
-@property (nonatomic, strong) UIActionSheet *actionsSheet;
 @property (nonatomic, strong) UIActivityViewController *activityViewController;
 
 // Private Methods
@@ -138,12 +140,11 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 @synthesize forceHideStatusBar = _forceHideStatusBar;
 @synthesize is3DTouchPreviewing = _is3DTouchPreviewing;
 @synthesize usePopAnimation = _usePopAnimation;
-@synthesize actionsSheet = _actionsSheet, activityViewController = _activityViewController;
+@synthesize activityViewController = _activityViewController;
 @synthesize trackTintColor = _trackTintColor, progressTintColor = _progressTintColor;
 @synthesize delegate = _delegate;
 @synthesize videoPlayer;
 @synthesize videoPlayerVC;
-@synthesize loaderManager;
 @synthesize tempPlay;
 
 #pragma mark - NSObject
@@ -786,8 +787,12 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     if (photo.isVideo && !photo.isPlaying)
     {
         if (!photo.videoURL && !photo.videoURL.scheme && !photo.videoURL.host) {
-            UIAlertView *alertDialog = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"pvb_playback_error", @"") message:NSLocalizedString(@"pvb_playback_error_url_msg", @"") delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-            [alertDialog show];
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"pvb_playback_error", @"") message:NSLocalizedString(@"pvb_playback_error_play_msg", @"") preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil];
+            [alert addAction:cancelAction];
+            
+            [self presentViewController:alert animated:YES completion:nil];
             return;
         }
         
@@ -882,8 +887,12 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         NSLog(@"Playback Error: %@", error.description);
     }
     
-    UIAlertView *alertDialog = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"pvb_playback_error", @"") message:NSLocalizedString(@"pvb_playback_error_play_msg", @"") delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
-    [alertDialog show];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"pvb_playback_error", @"") message:NSLocalizedString(@"pvb_playback_error_play_msg", @"") preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil];
+    [alert addAction:cancelAction];
+    
+    [self presentViewController:alert animated:YES completion:nil];
     
     IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
     
@@ -1691,20 +1700,27 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         else
         {
             // Action sheet
-            self.actionsSheet = [UIActionSheet new];
-            self.actionsSheet.delegate = self;
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
             for(NSString *action in _actionButtonTitles) {
-                [self.actionsSheet addButtonWithTitle:action];
+                UIAlertAction *newAction = [UIAlertAction actionWithTitle:action style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    [self hideControlsAfterDelay]; // Continue as normal...
+                }];
+                
+                [alert addAction:newAction];
             }
             
-            self.actionsSheet.cancelButtonIndex = [self.actionsSheet addButtonWithTitle:IDMPhotoBrowserLocalizedStrings(@"Cancel")];
-            self.actionsSheet.actionSheetStyle = UIActionSheetStyleBlackTranslucent;
+            UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:IDMPhotoBrowserLocalizedStrings(@"Cancel") style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+                [self hideControlsAfterDelay]; // Continue as normal...
+            }];
+            
+            [alert addAction:cancelAction];
             
             if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-                [_actionsSheet showFromBarButtonItem:sender animated:YES];
-            } else {
-                [_actionsSheet showInView:self.view];
+                [alert setModalPresentationStyle:UIModalPresentationPopover];
+                alert.popoverPresentationController.barButtonItem = sender;
             }
+            
+            [self presentViewController:alert animated:YES completion:nil];
         }
         
         // Keep controls hidden
@@ -1712,23 +1728,6 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     }
     
     photo = nil;
-}
-
-#pragma mark - Action Sheet Delegate
-
-- (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    if (actionSheet == _actionsSheet) {
-        self.actionsSheet = nil;
-        
-        if (buttonIndex != actionSheet.cancelButtonIndex) {
-            if ([_delegate respondsToSelector:@selector(photoBrowser:didDismissActionSheetWithButtonIndex:photoIndex:)]) {
-                [_delegate photoBrowser:self didDismissActionSheetWithButtonIndex:buttonIndex photoIndex:_currentPageIndex];
-                return;
-            }
-        }
-    }
-    
-    [self hideControlsAfterDelay]; // Continue as normal...
 }
 
 #pragma mark - pop Animation

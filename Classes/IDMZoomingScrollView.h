@@ -9,8 +9,6 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-#import "DACircularProgressView.h"
-
 #import "IDMPhotoProtocol.h"
 #import "IDMTapDetectingImageView.h"
 #import "IDMTapDetectingView.h"
@@ -26,8 +24,6 @@
     IDMCaptionView *_captionView;
     
 	IDMTapDetectingView *_tapView; // for background taps
-    
-    DACircularProgressView *_progressView;
     
     UIView *_topBackgroundView;
 }
