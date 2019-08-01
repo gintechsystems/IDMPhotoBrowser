@@ -25,7 +25,7 @@
 @interface IDMZoomingScrollView () {
     DACircularProgressView *progressView;
 }
-    
+
 @property (nonatomic, weak) IDMPhotoBrowser *photoBrowser;
 - (void)handleSingleTap:(CGPoint)touchPoint;
 - (void)handleDoubleTap:(CGPoint)touchPoint;
@@ -40,23 +40,23 @@
         // Delegate
         self.photoBrowser = browser;
         
-		// Tap view for background
-		_tapView = [[IDMTapDetectingView alloc] initWithFrame:self.bounds];
-		_tapView.tapDelegate = self;
-		_tapView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-		_tapView.backgroundColor = [UIColor clearColor];
-		[self addSubview:_tapView];
+        // Tap view for background
+        _tapView = [[IDMTapDetectingView alloc] initWithFrame:self.bounds];
+        _tapView.tapDelegate = self;
+        _tapView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        _tapView.backgroundColor = [UIColor clearColor];
+        [self addSubview:_tapView];
         
-		// Image view
-		_photoImageView = [[IDMTapDetectingImageView alloc] initWithFrame:CGRectZero];
-		_photoImageView.tapDelegate = self;
-		_photoImageView.backgroundColor = [UIColor clearColor];
+        // Image view
+        _photoImageView = [[IDMTapDetectingImageView alloc] initWithFrame:CGRectZero];
+        _photoImageView.tapDelegate = self;
+        _photoImageView.backgroundColor = [UIColor clearColor];
         
         if (@available(iOS 11.0, *)) {
             _photoImageView.accessibilityIgnoresInvertColors = YES;
         }
         
-		[self addSubview:_photoImageView];
+        [self addSubview:_photoImageView];
         
         CGRect screenBound = [[UIScreen mainScreen] bounds];
         CGFloat screenWidth = screenBound.size.width;
@@ -78,13 +78,13 @@
         progressView.progressTintColor = browser.progressTintColor ? self.photoBrowser.progressTintColor : [UIColor colorWithWhite:1.0 alpha:1];
         [self addSubview:progressView];
         
-		// Setup
-		self.backgroundColor = [UIColor clearColor];
-		self.delegate = self;
-		self.showsHorizontalScrollIndicator = NO;
-		self.showsVerticalScrollIndicator = NO;
-		self.decelerationRate = UIScrollViewDecelerationRateFast;
-		self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        // Setup
+        self.backgroundColor = [UIColor clearColor];
+        self.delegate = self;
+        self.showsHorizontalScrollIndicator = NO;
+        self.showsVerticalScrollIndicator = NO;
+        self.decelerationRate = UIScrollViewDecelerationRateFast;
+        self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     }
     
     return self;
@@ -120,39 +120,40 @@
 
 // Get and display image
 - (void)displayImage {
-	if (_photo && _photoImageView.image == nil) {
-		// Reset
-		self.maximumZoomScale = 1;
-		self.minimumZoomScale = 1;
-		self.zoomScale = 1;
+    if (_photo && _photoImageView.image == nil) {
+        // Reset
+        self.maximumZoomScale = 1;
+        self.minimumZoomScale = 1;
+        self.zoomScale = 1;
         
-		self.contentSize = CGSizeMake(0, 0);
-		
-		// Get image from browser as it handles ordering of fetching
-		UIImage *img = [self.photoBrowser imageForPhoto:_photo];
-		if (img) {
+        self.contentSize = CGSizeMake(0, 0);
+        
+        // Get image from browser as it handles ordering of fetching
+        UIImage *img = [self.photoBrowser imageForPhoto:_photo];
+        if (img) {
             [progressView removeFromSuperview];
             
             // Set image
-			_photoImageView.image = img;
-			_photoImageView.hidden = NO;
+            _photoImageView.image = img;
+            _photoImageView.hidden = NO;
             
             // Setup photo frame
-			CGRect photoImageViewFrame;
-			photoImageViewFrame.origin = CGPointZero;
-			photoImageViewFrame.size = img.size;
+            CGRect photoImageViewFrame;
+            photoImageViewFrame.origin = CGPointZero;
+            photoImageViewFrame.size = img.size;
             
-			_photoImageView.frame = photoImageViewFrame;
-			self.contentSize = photoImageViewFrame.size;
-
-			// Set zoom to minimum zoom
-			[self setMaxMinZoomScalesForCurrentBounds];
-        } else {
-			// Hide image view
-			_photoImageView.hidden = YES;
+            _photoImageView.frame = photoImageViewFrame;
+            self.contentSize = photoImageViewFrame.size;
+            
+            // Set zoom to minimum zoom
+            [self setMaxMinZoomScalesForCurrentBounds];
+        }
+        else {
+            // Hide image view
+            _photoImageView.hidden = YES;
             
             progressView.alpha = 1.0f;
-		}
+        }
         
         if (_photo.isVideo) {
             _photo.playButton = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"play"] highlightedImage:[UIImage imageNamed:@"play_tap"]];
@@ -168,11 +169,10 @@
             [_photo.playButton addGestureRecognizer:holdPlay];
             
             [self insertSubview:_photo.playButton atIndex:3];
-            //[self insertSubview:_photo.playButton aboveSubview:_photoImageView];
         }
         
-		[self setNeedsLayout];
-	}
+        [self setNeedsLayout];
+    }
 }
 
 - (void)setProgress:(CGFloat)progress forPhoto:(IDMPhoto*)photo {
@@ -290,19 +290,19 @@
 #pragma mark - UIScrollViewDelegate
 
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView {
-	return _photoImageView;
+    return _photoImageView;
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-	[_photoBrowser cancelControlHiding];
+    [_photoBrowser cancelControlHiding];
 }
 
 - (void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)view {
-	[_photoBrowser cancelControlHiding];
+    [_photoBrowser cancelControlHiding];
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-	[_photoBrowser hideControlsAfterDelay];
+    [_photoBrowser hideControlsAfterDelay];
 }
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView {
@@ -313,14 +313,14 @@
 #pragma mark - Tap Detection
 
 - (void)handleSingleTap:(CGPoint)touchPoint {
-	[_photoBrowser performSelector:@selector(toggleControls) withObject:nil afterDelay:0.2];
+    [_photoBrowser performSelector:@selector(toggleControls) withObject:nil afterDelay:0.2];
 }
 
 - (void)handleDoubleTap:(CGPoint)touchPoint {
-	
-	// Cancel any single tap handling
-	[NSObject cancelPreviousPerformRequestsWithTarget:_photoBrowser];
-	
+    
+    // Cancel any single tap handling
+    [NSObject cancelPreviousPerformRequestsWithTarget:_photoBrowser];
+    
     // Zoom
     if (self.zoomScale == self.maximumDoubleTapZoomScale) {
         // Zoom out
@@ -332,13 +332,13 @@
         
         [self zoomToRect:CGRectMake(targetPoint.x, targetPoint.y, targetSize.width, targetSize.height) animated:YES];
     }
-	
-	// Delay controls
-	[_photoBrowser hideControlsAfterDelay];
+    
+    // Delay controls
+    [_photoBrowser hideControlsAfterDelay];
 }
 
 // Image View
-- (void)imageView:(UIImageView *)imageView singleTapDetected:(UITouch *)touch { 
+- (void)imageView:(UIImageView *)imageView singleTapDetected:(UITouch *)touch {
     [self handleSingleTap:[touch locationInView:imageView]];
 }
 - (void)imageView:(UIImageView *)imageView doubleTapDetected:(UITouch *)touch {

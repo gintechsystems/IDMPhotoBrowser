@@ -14,10 +14,13 @@
 @interface IDMPhoto () {
     // Image Sources
     NSString *_photoPath;
-
+    
     // Image
     UIImage *_underlyingImage;
-
+    
+    // View
+    UIView *_underlyingView;
+    
     // Other
     NSString *_caption;
     BOOL _loadingInProgress;
@@ -34,26 +37,32 @@
 // Properties
 @synthesize
 underlyingImage = _underlyingImage,
+underlyingView = _underlyingView,
 playButton = _playButton,
 photoURL = _photoURL,
 videoURL = _videoURL,
 caption = _caption,
 isVideo = _isVideo,
 isPlaying = _isPlaying,
-isVideoImageReady = _isVideoImageReady;
+isVideoImageReady = _isVideoImageReady,
+currentSeekTime = _currentSeekTime;
 
 #pragma mark Class Methods
 
 + (IDMPhoto *)photoWithImage:(UIImage *)image {
-	return [[IDMPhoto alloc] initWithImage:image];
+    return [[IDMPhoto alloc] initWithImage:image];
 }
 
 + (IDMPhoto *)photoWithFilePath:(NSString *)path {
-	return [[IDMPhoto alloc] initWithFilePath:path];
+    return [[IDMPhoto alloc] initWithFilePath:path];
 }
 
 + (IDMPhoto *)photoWithURL:(NSURL *)url {
-	return [[IDMPhoto alloc] initWithURL:url];
+    return [[IDMPhoto alloc] initWithURL:url];
+}
+
++ (IDMPhoto *)photoWithVideoURL:(NSURL *)url {
+    return [[IDMPhoto alloc] initWithVideoURL:url];
 }
 
 + (NSArray *)photosWithImages:(NSArray *)imagesArray {
@@ -102,30 +111,41 @@ isVideoImageReady = _isVideoImageReady;
 #pragma mark NSObject
 
 - (id)initWithImage:(UIImage *)image {
-	if ((self = [super init])) {
-		self.underlyingImage = image;
-	}
-	return self;
+    if ((self = [super init])) {
+        self.underlyingImage = image;
+    }
+    return self;
 }
 
 - (id)initWithFilePath:(NSString *)path {
-	if ((self = [super init])) {
-		_photoPath = [path copy];
-	}
-	return self;
+    if ((self = [super init])) {
+        _photoPath = [path copy];
+    }
+    return self;
 }
 
 - (id)initWithURL:(NSURL *)url {
-	if ((self = [super init])) {
-		_photoURL = [url copy];
-	}
-	return self;
+    if ((self = [super init])) {
+        _photoURL = [url copy];
+    }
+    return self;
+}
+
+- (id)initWithVideoURL:(NSURL *)url {
+    if ((self = [super init])) {
+        _videoURL = [url copy];
+    }
+    return self;
 }
 
 #pragma mark IDMPhoto Protocol Methods
 
 - (UIImage *)underlyingImage {
     return _underlyingImage;
+}
+
+- (UIView *)underlyingView {
+    return _underlyingView;
 }
 
 - (void)loadUnderlyingImageAndNotify {
@@ -211,45 +231,48 @@ isVideoImageReady = _isVideoImageReady;
 // Release if we can get it again from path or url
 - (void)unloadUnderlyingImage {
     _loadingInProgress = NO;
-
-	if (self.underlyingImage && (_photoPath || _photoURL)) {
-		self.underlyingImage = nil;
-	}
+    
+    if (self.underlyingImage && (_photoPath || _photoURL)) {
+        self.underlyingImage = nil;
+    }
+    else if (self.underlyingImage && _videoURL) {
+        self.underlyingImage = nil;
+    }
 }
 
 #pragma mark - Async Loading
 
 /*- (UIImage *)decodedImageWithImage:(UIImage *)image {
-    CGImageRef imageRef = image.CGImage;
-    // System only supports RGB, set explicitly and prevent context error
-    // if the downloaded image is not the supported format
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    
-    CGContextRef context = CGBitmapContextCreate(NULL,
-                                                 CGImageGetWidth(imageRef),
-                                                 CGImageGetHeight(imageRef),
-                                                 8,
-                                                 // width * 4 will be enough because are in ARGB format, don't read from the image
-                                                 CGImageGetWidth(imageRef) * 4,
-                                                 colorSpace,
-                                                 // kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little
-                                                 // makes system don't need to do extra conversion when displayed.
-                                                 kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
-    CGColorSpaceRelease(colorSpace);
-    
-    if ( ! context) {
-        return nil;
-    }
-    
-    CGRect rect = (CGRect){CGPointZero, CGImageGetWidth(imageRef), CGImageGetHeight(imageRef)};
-    CGContextDrawImage(context, rect, imageRef);
-    CGImageRef decompressedImageRef = CGBitmapContextCreateImage(context);
-    CGContextRelease(context);
-    
-    UIImage *decompressedImage = [[UIImage alloc] initWithCGImage:decompressedImageRef];
-    CGImageRelease(decompressedImageRef);
-    return decompressedImage;
-}*/
+ CGImageRef imageRef = image.CGImage;
+ // System only supports RGB, set explicitly and prevent context error
+ // if the downloaded image is not the supported format
+ CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+ 
+ CGContextRef context = CGBitmapContextCreate(NULL,
+ CGImageGetWidth(imageRef),
+ CGImageGetHeight(imageRef),
+ 8,
+ // width * 4 will be enough because are in ARGB format, don't read from the image
+ CGImageGetWidth(imageRef) * 4,
+ colorSpace,
+ // kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little
+ // makes system don't need to do extra conversion when displayed.
+ kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Little);
+ CGColorSpaceRelease(colorSpace);
+ 
+ if ( ! context) {
+ return nil;
+ }
+ 
+ CGRect rect = (CGRect){CGPointZero, CGImageGetWidth(imageRef), CGImageGetHeight(imageRef)};
+ CGContextDrawImage(context, rect, imageRef);
+ CGImageRef decompressedImageRef = CGBitmapContextCreateImage(context);
+ CGContextRelease(context);
+ 
+ UIImage *decompressedImage = [[UIImage alloc] initWithCGImage:decompressedImageRef];
+ CGImageRelease(decompressedImageRef);
+ return decompressedImage;
+ }*/
 
 - (UIImage *)decodedImageWithImage:(UIImage *)image {
     if (image.images)
@@ -300,12 +323,12 @@ isVideoImageReady = _isVideoImageReady;
     
     // If failed, return undecompressed image
     if (!context) return image;
-	
+    
     CGContextDrawImage(context, imageRect, imageRef);
     CGImageRef decompressedImageRef = CGBitmapContextCreateImage(context);
-	
+    
     CGContextRelease(context);
-	
+    
     UIImage *decompressedImage = [UIImage imageWithCGImage:decompressedImageRef scale:image.scale orientation:image.imageOrientation];
     CGImageRelease(decompressedImageRef);
     return decompressedImage;

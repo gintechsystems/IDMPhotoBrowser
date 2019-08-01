@@ -305,7 +305,6 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 - (void)panGestureRecognized:(id)sender {
     // Initial Setup
     IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
-    //IDMTapDetectingImageView *scrollView.photoImageView = scrollView.photoImageView;
     
     static float firstX, firstY;
     
@@ -321,7 +320,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         firstX = [scrollView center].x;
         firstY = [scrollView center].y;
         
-        _senderViewForAnimation.hidden = (_currentPageIndex == _initalPageIndex);
+        _senderViewForAnimation.hidden = NO;
         
         _isdraggingPhoto = YES;
         [self setNeedsStatusBarAppearanceUpdate];
@@ -341,7 +340,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     if ([(UIPanGestureRecognizer*)sender state] == UIGestureRecognizerStateEnded) {
         if(scrollView.center.y > viewHalfHeight+40 || scrollView.center.y < viewHalfHeight-40) // Automatic Dismiss View
         {
-            if (_senderViewForAnimation && _currentPageIndex == _initalPageIndex) {
+            if (_senderViewForAnimation) {
                 [self performCloseAnimationWithScrollView:scrollView];
                 return;
             }
@@ -489,6 +488,12 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     [_applicationWindow addSubview:resizableImageView];
     self.view.hidden = YES;
     
+    for (IDMPhoto *photoFromArray in self->_photos) {
+        if (photoFromArray.underlyingView != nil && photoFromArray.underlyingView != _senderViewForAnimation) {
+            photoFromArray.underlyingView.hidden = NO;
+        }
+    }
+    
     void (^completion)(void) = ^() {
         self->_senderViewForAnimation.hidden = NO;
         self->_senderViewForAnimation = nil;
@@ -520,6 +525,47 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     }
     
     CGSize imageSize = image.size;
+    
+    CGRect bounds = _applicationWindow.bounds;
+    // adjust bounds as the photo browser does
+    if (@available(iOS 11.0, *)) {
+        // use the windows safe area inset
+        UIWindow *window = [UIApplication sharedApplication].keyWindow;
+        UIEdgeInsets insets = UIEdgeInsetsMake(_statusBarHeight, 0, 0, 0);
+        if (window != NULL) {
+            insets = window.safeAreaInsets;
+        }
+        bounds = [self adjustForSafeArea:bounds adjustForStatusBar:NO forInsets:insets];
+    }
+    CGFloat maxWidth = CGRectGetWidth(bounds);
+    CGFloat maxHeight = CGRectGetHeight(bounds);
+    
+    CGRect animationFrame = CGRectZero;
+    
+    CGFloat aspect = imageSize.width / imageSize.height;
+    if (maxWidth / aspect <= maxHeight) {
+        animationFrame.size = CGSizeMake(maxWidth, maxWidth / aspect);
+    }
+    else {
+        animationFrame.size = CGSizeMake(maxHeight * aspect, maxHeight);
+    }
+    
+    animationFrame.origin.x = roundf((maxWidth - animationFrame.size.width) / 2.0f);
+    animationFrame.origin.y = roundf((maxHeight - animationFrame.size.height) / 2.0f);
+    
+    if (!presenting) {
+        animationFrame.origin.y += scrollView.frame.origin.y;
+    }
+    return animationFrame;
+}
+
+- (CGRect)animationFrameForVideo:(AVPlayerViewController *)playerVC presenting:(BOOL)presenting scrollView:(UIScrollView *)scrollView
+{
+    if (!playerVC) {
+        return CGRectZero;
+    }
+    
+    CGSize imageSize = playerVC.view.frame.size;
     
     CGRect bounds = _applicationWindow.bounds;
     // adjust bounds as the photo browser does
@@ -722,7 +768,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     
     // Counter Button
     _counterButton = [[UIBarButtonItem alloc] initWithCustomView:_counterLabel];
-
+    
     
     // Action Button
     _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction
@@ -784,10 +830,10 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 - (void)playVideo
 {
     IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
-    if (photo.isVideo && !photo.isPlaying)
-    {
+    
+    if (photo.isVideo && !photo.isPlaying) {
         if (!photo.videoURL && !photo.videoURL.scheme && !photo.videoURL.host) {
-            UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"pvb_playback_error", @"") message:NSLocalizedString(@"pvb_playback_error_play_msg", @"") preferredStyle:UIAlertControllerStyleAlert];
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Video Error" message:@"The video could not be played because it has an invalid url." preferredStyle:UIAlertControllerStyleAlert];
             
             UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil];
             [alert addAction:cancelAction];
@@ -816,11 +862,12 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             self.videoPlayer = [[AVPlayer alloc] initWithPlayerItem:cachedPlayerItem];
             
             self.videoPlayerVC = [AVPlayerViewController new];
+            
             self.videoPlayerVC.view.frame = self.view.bounds;
             
             self.videoPlayerVC.showsPlaybackControls = NO;
             
-            self.videoPlayerVC.videoGravity = AVLayerVideoGravityResizeAspectFill;
+            self.videoPlayerVC.videoGravity = AVLayerVideoGravityResizeAspect;
             
             self.videoPlayerVC.player = self.videoPlayer;
             
@@ -832,34 +879,37 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             self.tempPlay.center = self.videoPlayerVC.view.center;
             self.tempPlay.hidden = YES;
             
-            UITapGestureRecognizer *tapPlayController = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tempTapPlay:)];
             UITapGestureRecognizer *tapPlayButton = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tempTapPlay:)];
             
             UILongPressGestureRecognizer *tapPlayHold = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(tempTapPlayHold:)];
             [tapPlayHold setMinimumPressDuration:0.2];
             
             UIPanGestureRecognizer *panVideo = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panningVideo:)];
+            panVideo.minimumNumberOfTouches = 1;
+            panVideo.maximumNumberOfTouches = 1;
             
-            UIView *aView = [[UIView alloc] initWithFrame:self.videoPlayerVC.view.bounds];
-            [aView setBackgroundColor:[UIColor clearColor]];
-            [aView addGestureRecognizer:tapPlayController];
-            [aView addGestureRecognizer:panVideo];
-            [self.videoPlayerVC.view addSubview:aView];
+            [self.videoPlayerVC.contentOverlayView addGestureRecognizer:panVideo];
             
             [self.tempPlay addGestureRecognizer:tapPlayButton];
             [self.tempPlay addGestureRecognizer:tapPlayHold];
             
             [self.view insertSubview:self.videoPlayerVC.view atIndex:1];
             
-            [self.videoPlayerVC.view addSubview:tempPlay];
+            [self.videoPlayerVC.contentOverlayView addSubview:tempPlay];
+            
+            if (CMTIME_IS_VALID(photo.currentSeekTime)) {
+                [self.videoPlayer seekToTime:photo.currentSeekTime];
+            }
+            else {
+                [self.videoPlayer seekToTime:kCMTimeZero];
+            }
             
             [self.videoPlayer play];
         }
         
         photo.isPlaying = YES;
     }
-    else
-    {
+    else {
         photo.isPlaying = NO;
     }
     
@@ -868,8 +918,6 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 - (void)moviePlaybackComplete:(NSNotification *)notification
 {
-    //NSDictionary *notificationUserInfo = [notification userInfo];
-    
     IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
     
     [videoPlayerVC.view setHidden:YES];
@@ -887,7 +935,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         NSLog(@"Playback Error: %@", error.description);
     }
     
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"pvb_playback_error", @"") message:NSLocalizedString(@"pvb_playback_error_play_msg", @"") preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Video Playback Error" message:@"Video playback error has occurred, please try again." preferredStyle:UIAlertControllerStyleAlert];
     
     UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil];
     [alert addAction:cancelAction];
@@ -904,13 +952,11 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 - (void)tempTapPlay:(UITapGestureRecognizer *)recognizer
 {
-    if (videoPlayer.rate != 0.0)
-    {
+    if (videoPlayer.rate != 0.0) {
         [videoPlayer pause];
         [tempPlay setHidden:NO];
     }
-    else
-    {
+    else {
         [videoPlayer play];
         [tempPlay setHighlighted:YES];
         
@@ -923,13 +969,11 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 - (void)tempTapPlayHold:(UILongPressGestureRecognizer *)recognizer
 {
-    if (videoPlayer.rate != 0.0)
-    {
+    if (videoPlayer.rate != 0.0) {
         [videoPlayer pause];
         [tempPlay setHidden:NO];
     }
-    else
-    {
+    else {
         if (recognizer.state == UIGestureRecognizerStateBegan)
         {
             [tempPlay setHighlighted:YES];
@@ -963,6 +1007,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 - (void)panningVideo:(UIPanGestureRecognizer *)recognizer
 {
+    IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
     IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
     
     CGPoint velocity = [recognizer velocityInView:recognizer.view];
@@ -977,6 +1022,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             }
             else if (recognizer.state == UIGestureRecognizerStateEnded) {
                 [self doneButtonPressed:nil];
+                [self performCloseAnimationWithScrollView:scrollView];
             }
         }
         else //Up
@@ -986,6 +1032,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             }
             else if (recognizer.state == UIGestureRecognizerStateEnded) {
                 [self doneButtonPressed:nil];
+                [self performCloseAnimationWithScrollView:scrollView];
             }
         }
     }
@@ -1043,12 +1090,6 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     return YES;
 }
 
-- (void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
-    
-    //[[UIApplication sharedApplication] setStatusBarHidden:false];
-}
-
 #pragma mark - Status Bar
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
@@ -1057,22 +1098,6 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 }
 
 - (BOOL)prefersStatusBarHidden {
-    /*if(_forceHideStatusBar) {
-     return YES;
-     }
-     
-     if(_isdraggingPhoto) {
-     if(_statusBarOriginallyHidden) {
-     return YES;
-     }
-     else {
-     return NO;
-     }
-     }
-     else {
-     return [self areControlsHidden];
-     }*/
-    
     return YES;
 }
 
@@ -1527,6 +1552,12 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         [self didStartViewingPageAtIndex:index];
         
         if(_arrowButtonsChangePhotosAnimated) [self updateToolbar];
+        
+        IDMPhoto *photo = [self photoAtIndex:index];
+        
+        if (photo != nil && photo.underlyingView != nil) {
+            _senderViewForAnimation = photo.underlyingView;
+        }
     }
 }
 

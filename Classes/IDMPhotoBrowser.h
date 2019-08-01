@@ -16,6 +16,8 @@
 #import "IDMPhotoProtocol.h"
 #import "IDMTapDetectingImageView.h"
 
+#define CMTIME_IS_VALID(time) ((Boolean)(((time).flags & kCMTimeFlags_Valid) != 0))
+
 // Delgate
 @class IDMPhotoBrowser;
 @protocol IDMPhotoBrowserDelegate <NSObject>
@@ -75,7 +77,7 @@
 
 @property (nonatomic) AVPlayer *videoPlayer;
 @property (nonatomic) AVPlayerViewController *videoPlayerVC;
-    
+
 
 // Init
 - (id)initWithPhotos:(NSArray *)photosArray;

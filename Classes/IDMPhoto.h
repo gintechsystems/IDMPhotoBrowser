@@ -38,12 +38,17 @@ typedef void (^IDMProgressUpdateBlock)(CGFloat progress);
 
 @property (nonatomic, strong) UIImage *underlyingImage;
 
+@property (nonatomic, strong) UIView *underlyingView;
+
 @property (nonatomic, strong) UIImageView *playButton;
+
+@property CMTime currentSeekTime;
 
 // Class
 + (IDMPhoto *)photoWithImage:(UIImage *)image;
 + (IDMPhoto *)photoWithFilePath:(NSString *)path;
 + (IDMPhoto *)photoWithURL:(NSURL *)url;
++ (IDMPhoto *)photoWithVideoURL:(NSURL *)url;
 
 + (NSArray *)photosWithImages:(NSArray *)imagesArray;
 + (NSArray *)photosWithFilePaths:(NSArray *)pathsArray;
@@ -53,6 +58,7 @@ typedef void (^IDMProgressUpdateBlock)(CGFloat progress);
 - (id)initWithImage:(UIImage *)image;
 - (id)initWithFilePath:(NSString *)path;
 - (id)initWithURL:(NSURL *)url;
+- (id)initWithVideoURL:(NSURL *)url;
 
 @end
 
