@@ -13,7 +13,7 @@ DEPENDENCIES:
   - VIMediaCache (from `https://github.com/shannonchou/VIMediaCache.git`, branch `develop`)
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs.git:
+  https://github.com/CocoaPods/Specs.git:
     - DACircularProgress
     - pop
     - SDWebImage
@@ -36,4 +36,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: ec821315ec37db946e8e22a440222dad82299a8a
 
-COCOAPODS: 1.7.5
+COCOAPODS: 1.8.4

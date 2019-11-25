@@ -559,47 +559,6 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     return animationFrame;
 }
 
-- (CGRect)animationFrameForVideo:(AVPlayerViewController *)playerVC presenting:(BOOL)presenting scrollView:(UIScrollView *)scrollView
-{
-    if (!playerVC) {
-        return CGRectZero;
-    }
-    
-    CGSize imageSize = playerVC.view.frame.size;
-    
-    CGRect bounds = _applicationWindow.bounds;
-    // adjust bounds as the photo browser does
-    if (@available(iOS 11.0, *)) {
-        // use the windows safe area inset
-        UIWindow *window = [UIApplication sharedApplication].keyWindow;
-        UIEdgeInsets insets = UIEdgeInsetsMake(_statusBarHeight, 0, 0, 0);
-        if (window != NULL) {
-            insets = window.safeAreaInsets;
-        }
-        bounds = [self adjustForSafeArea:bounds adjustForStatusBar:NO forInsets:insets];
-    }
-    CGFloat maxWidth = CGRectGetWidth(bounds);
-    CGFloat maxHeight = CGRectGetHeight(bounds);
-    
-    CGRect animationFrame = CGRectZero;
-    
-    CGFloat aspect = imageSize.width / imageSize.height;
-    if (maxWidth / aspect <= maxHeight) {
-        animationFrame.size = CGSizeMake(maxWidth, maxWidth / aspect);
-    }
-    else {
-        animationFrame.size = CGSizeMake(maxHeight * aspect, maxHeight);
-    }
-    
-    animationFrame.origin.x = roundf((maxWidth - animationFrame.size.width) / 2.0f);
-    animationFrame.origin.y = roundf((maxHeight - animationFrame.size.height) / 2.0f);
-    
-    if (!presenting) {
-        animationFrame.origin.y += scrollView.frame.origin.y;
-    }
-    return animationFrame;
-}
-
 #pragma mark - Genaral
 
 - (void)prepareForClosePhotoBrowser {
@@ -610,6 +569,10 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     
     // Controls
     [NSObject cancelPreviousPerformRequestsWithTarget:self]; // Cancel any pending toggles from taps
+    
+    if ([_delegate respondsToSelector:@selector(photoBrowser:willDismissAtPageIndex:)]) {
+        [_delegate photoBrowser:self willDismissAtPageIndex:_currentPageIndex];
+    }
 }
 
 - (void)dismissPhotoBrowserAnimated:(BOOL)animated {
@@ -632,8 +595,9 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     self.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
     
     [self dismissViewControllerAnimated:animated completion:^{
-        if ([self->_delegate respondsToSelector:@selector(photoBrowser:didDismissAtPageIndex:)])
+        if ([self->_delegate respondsToSelector:@selector(photoBrowser:didDismissAtPageIndex:)]) {
             [self->_delegate photoBrowser:self didDismissAtPageIndex:self->_currentPageIndex];
+        }
         
         if (self->_applicationWindow != nil) {
             [self->_applicationWindow.rootViewController setNeedsStatusBarAppearanceUpdate];
@@ -829,6 +793,9 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 - (void)playVideo
 {
+    IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
+    IDMPhoto *scrollViewPhoto = [scrollView photo];
+    
     IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
     
     if (photo.isVideo && !photo.isPlaying) {
@@ -851,8 +818,6 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             [self.videoPlayer play];
         }
         else {
-            self.tempPlay = nil;
-            
             self.videoPlayer = nil;
             self.videoPlayerVC = nil;
             
@@ -874,28 +839,13 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(moviePlaybackComplete:) name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
             [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(moviePlaybackError:) name:AVPlayerItemFailedToPlayToEndTimeNotification object:nil];
             
-            self.tempPlay = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"play"] highlightedImage:[UIImage imageNamed:@"play_tap"]];
-            self.tempPlay.userInteractionEnabled = YES;
-            self.tempPlay.center = self.videoPlayerVC.view.center;
-            self.tempPlay.hidden = YES;
+            UITapGestureRecognizer *tapScrollViewVideo = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(videoPlayButtonTapped:)];
+            [scrollView addGestureRecognizer:tapScrollViewVideo];
             
-            UITapGestureRecognizer *tapPlayButton = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tempTapPlay:)];
+//            UITapGestureRecognizer *tapPlayButton = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(videoPlayButtonTapped:)];
+//            [[scrollViewPhoto playButton] addGestureRecognizer:tapPlayButton];
             
-            UILongPressGestureRecognizer *tapPlayHold = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(tempTapPlayHold:)];
-            [tapPlayHold setMinimumPressDuration:0.2];
-            
-            UIPanGestureRecognizer *panVideo = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panningVideo:)];
-            panVideo.minimumNumberOfTouches = 1;
-            panVideo.maximumNumberOfTouches = 1;
-            
-            [self.videoPlayerVC.contentOverlayView addGestureRecognizer:panVideo];
-            
-            [self.tempPlay addGestureRecognizer:tapPlayButton];
-            [self.tempPlay addGestureRecognizer:tapPlayHold];
-            
-            [self.view insertSubview:self.videoPlayerVC.view atIndex:1];
-            
-            [self.videoPlayerVC.contentOverlayView addSubview:tempPlay];
+            [scrollView insertSubview:self.videoPlayerVC.view atIndex:0];
             
             if (CMTIME_IS_VALID(photo.currentSeekTime)) {
                 [self.videoPlayer seekToTime:photo.currentSeekTime];
@@ -903,6 +853,15 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             else {
                 [self.videoPlayer seekToTime:kCMTimeZero];
             }
+            
+            [_doneButton setHidden:YES];
+            
+            [[scrollViewPhoto playButton] setHidden:YES];
+            [scrollViewPhoto setPlayButtonHidden:YES];
+            
+            [[scrollView captionView] setAlpha:0];
+            [[scrollView photoImageView] setAlpha:0];
+            [[scrollView topBackgroundView] setAlpha:0];
             
             [self.videoPlayer play];
         }
@@ -912,16 +871,14 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     else {
         photo.isPlaying = NO;
     }
-    
-    photo = nil;
 }
 
 - (void)moviePlaybackComplete:(NSNotification *)notification
 {
-    IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
-    
     [videoPlayerVC.view setHidden:YES];
     [videoPlayer pause];
+    
+    IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
     
     photo.isPlaying = NO;
 }
@@ -942,143 +899,54 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     
     [self presentViewController:alert animated:YES completion:nil];
     
-    IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
-    
     [videoPlayerVC.view setHidden:YES];
     [videoPlayer pause];
+    
+    IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
     
     photo.isPlaying = NO;
 }
 
-- (void)tempTapPlay:(UITapGestureRecognizer *)recognizer
+- (void)videoPlayButtonTapped:(UITapGestureRecognizer *)recognizer
 {
+    // If there is no initialized video player, we should setup and then play witout detecting its current state.
+    if (videoPlayer == nil || videoPlayerVC == nil) {
+        [self playVideo];
+        
+        return;
+    }
+    
+    IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
+    IDMPhoto *scrollViewPhoto = [scrollView photo];
+    
+    IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
+    
     if (videoPlayer.rate != 0.0) {
         [videoPlayer pause];
-        [tempPlay setHidden:NO];
+        
+        photo.isPlaying = NO;
+        
+        [_doneButton setHidden:NO];
+        
+        [[scrollViewPhoto playButton] setHidden:NO];
+        [scrollViewPhoto setPlayButtonHidden:NO];
+        
+        [[scrollView captionView] setAlpha:1];
+        [[scrollView topBackgroundView] setAlpha:1];
     }
     else {
         [videoPlayer play];
-        [tempPlay setHighlighted:YES];
         
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-            [self->tempPlay setHighlighted:NO];
-            [self->tempPlay setHidden:YES];
-        });
-    }
-}
-
-- (void)tempTapPlayHold:(UILongPressGestureRecognizer *)recognizer
-{
-    if (videoPlayer.rate != 0.0) {
-        [videoPlayer pause];
-        [tempPlay setHidden:NO];
-    }
-    else {
-        if (recognizer.state == UIGestureRecognizerStateBegan)
-        {
-            [tempPlay setHighlighted:YES];
-        }
-        else if (recognizer.state == UIGestureRecognizerStateChanged)
-        {
-            [tempPlay setHighlighted:YES];
-        }
-        else if (recognizer.state == UIGestureRecognizerStateCancelled)
-        {
-            [tempPlay setHighlighted:NO];
-        }
-        else if (recognizer.state == UIGestureRecognizerStateEnded)
-        {
-            [tempPlay setHighlighted:NO];
-            CGPoint point = [recognizer locationInView:tempPlay];
-            if (![tempPlay.layer containsPoint:point])
-            {
-                return;
-            }
-            
-            [tempPlay setHidden:YES];
-            [videoPlayer play];
-        }
-        else
-        {
-            [tempPlay setHighlighted:NO];
-        }
-    }
-}
-
-- (void)panningVideo:(UIPanGestureRecognizer *)recognizer
-{
-    IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
-    IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
-    
-    CGPoint velocity = [recognizer velocityInView:recognizer.view];
-    
-    BOOL isVerticalGesture = fabs(velocity.y) > fabs(velocity.x);
-    
-    if (isVerticalGesture) {
-        if (velocity.y > 0) //Down
-        {
-            if (recognizer.state == UIGestureRecognizerStateBegan) {
-                [videoPlayer pause];
-            }
-            else if (recognizer.state == UIGestureRecognizerStateEnded) {
-                [self doneButtonPressed:nil];
-                [self performCloseAnimationWithScrollView:scrollView];
-            }
-        }
-        else //Up
-        {
-            if (recognizer.state == UIGestureRecognizerStateBegan) {
-                [videoPlayer pause];
-            }
-            else if (recognizer.state == UIGestureRecognizerStateEnded) {
-                [self doneButtonPressed:nil];
-                [self performCloseAnimationWithScrollView:scrollView];
-            }
-        }
-    }
-    else {
-        if (velocity.x > 0) //Right
-        {
-            if (recognizer.state == UIGestureRecognizerStateBegan) {
-                [videoPlayer pause];
-            }
-            else if (recognizer.state == UIGestureRecognizerStateEnded) {
-                [videoPlayer pause];
-                [videoPlayerVC.view removeFromSuperview];
-                
-                videoPlayerVC = nil;
-                videoPlayer = nil;
-                tempPlay = nil;
-                
-                photo.isPlaying = NO;
-                
-                [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
-                [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemFailedToPlayToEndTimeNotification object:nil];
-                
-                [self gotoPreviousPage];
-            }
-        }
-        else //Left
-        {
-            if (recognizer.state == UIGestureRecognizerStateBegan) {
-                [videoPlayer pause];
-            }
-            else if (recognizer.state == UIGestureRecognizerStateEnded) {
-                [videoPlayer pause];
-                [videoPlayerVC.view removeFromSuperview];
-                
-                videoPlayerVC = nil;
-                videoPlayer = nil;
-                tempPlay = nil;
-                
-                photo.isPlaying = NO;
-                
-                [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
-                [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemFailedToPlayToEndTimeNotification object:nil];
-                
-                [self gotoNextPage];
-            }
-        }
+        photo.isPlaying = YES;
+        
+        [_doneButton setHidden:YES];
+        
+        [[scrollViewPhoto playButton] setHidden:YES];
+        [scrollViewPhoto setPlayButtonHidden:YES];
+        
+        [[scrollView captionView] setAlpha:0];
+        [[scrollView photoImageView] setAlpha:0];
+        [[scrollView topBackgroundView] setAlpha:0];
     }
 }
 
@@ -1244,6 +1112,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             if ([photo caption]) captionView = [[IDMCaptionView alloc] initWithPhoto:photo];
         }
     }
+    
     captionView.alpha = [self areControlsHidden] ? 0 : 1; // Initial alpha
     
     return captionView;
@@ -1374,6 +1243,32 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
             captionView.frame = [self frameForCaptionView:captionView atIndex:index];
             [_pagingScrollView addSubview:captionView];
             page.captionView = captionView;
+            
+            // Add top background view
+            UIView *topBackgroundView = [self topBackgroundViewForPhotoAtIndex:index];
+            topBackgroundView.frame = [self frameForTopBackgroundView:topBackgroundView atIndex:index];
+            [_pagingScrollView addSubview:topBackgroundView];
+            page.topBackgroundView = topBackgroundView;
+            
+            // Update when video
+            IDMPhoto *pagePhoto = [page photo];
+            
+            if (pagePhoto.isVideo) {
+                [self.videoPlayer pause];
+                
+                self.videoPlayer = nil;
+                self.videoPlayerVC = nil;
+                
+                [_doneButton setHidden:NO];
+                
+                pagePhoto.isPlaying = NO;
+                
+                [[pagePhoto playButton] setHidden:NO];
+                [pagePhoto setPlayButtonHidden:NO];
+                
+                UITapGestureRecognizer *tapScrollViewVideo = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(videoPlayButtonTapped:)];
+                [page addGestureRecognizer:tapScrollViewVideo];
+            }
         }
     }
 }
@@ -1611,10 +1506,9 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 // If permanent then we don't set timers to hide again
 - (void)setControlsHidden:(BOOL)hidden animated:(BOOL)animated permanent:(BOOL)permanent {
-    // Cancel any timers
     IDMPhoto *p = [self photoAtIndex:_currentPageIndex];
-    if (p.isPlaying)
-    {
+    
+    if (p.isVideo) {
         return;
     }
     

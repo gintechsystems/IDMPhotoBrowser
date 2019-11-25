@@ -109,4 +109,6 @@
 - (void)playVideo;
 - (void)moviePlaybackComplete:(NSNotification *)notification;
 
+- (void)videoPlayButtonTapped:(UITapGestureRecognizer *)recognizer;
+
 @end

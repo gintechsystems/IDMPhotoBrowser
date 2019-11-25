@@ -156,17 +156,10 @@
         }
         
         if (_photo.isVideo) {
-            _photo.playButton = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"play"] highlightedImage:[UIImage imageNamed:@"play_tap"]];
+            _photo.playButton = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"play"]];
             _photo.playButton.userInteractionEnabled = YES;
             _photo.playButton.center = progressView.center;
-            _photo.playButton.hidden = false;
-            
-            UITapGestureRecognizer *tapPlay = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapPlay:)];
-            [_photo.playButton addGestureRecognizer:tapPlay];
-            
-            UILongPressGestureRecognizer *holdPlay = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(holdPlay:)];
-            [holdPlay setMinimumPressDuration:0.2];
-            [_photo.playButton addGestureRecognizer:holdPlay];
+            _photo.playButton.hidden = _photo.playButtonHidden;
             
             [self insertSubview:_photo.playButton atIndex:3];
         }
@@ -294,6 +287,10 @@
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    if (_photo.isVideo) {
+        return;
+    }
+    
     [_photoBrowser cancelControlHiding];
 }
 
@@ -302,6 +299,10 @@
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    if (_photo.isVideo) {
+        return;
+    }
+    
     [_photoBrowser hideControlsAfterDelay];
 }
 
@@ -313,10 +314,17 @@
 #pragma mark - Tap Detection
 
 - (void)handleSingleTap:(CGPoint)touchPoint {
+    if (_photo.isVideo) {
+        return;
+    }
+    
     [_photoBrowser performSelector:@selector(toggleControls) withObject:nil afterDelay:0.2];
 }
 
 - (void)handleDoubleTap:(CGPoint)touchPoint {
+    if (_photo.isVideo) {
+        return;
+    }
     
     // Cancel any single tap handling
     [NSObject cancelPreviousPerformRequestsWithTarget:_photoBrowser];
@@ -351,38 +359,6 @@
 }
 - (void)view:(UIView *)view doubleTapDetected:(UITouch *)touch {
     [self handleDoubleTap:[touch locationInView:view]];
-}
-
-- (void)tapPlay:(UITapGestureRecognizer *)recognizer
-{
-    [_photo.playButton setHighlighted:YES];
-    
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-        [self->_photo.playButton setHighlighted:NO];
-        [self->_photoBrowser setControlsHidden:NO animated:YES permanent:YES];
-        [self->_photoBrowser playVideo];
-    });
-}
-
-- (void)holdPlay:(UILongPressGestureRecognizer *)recognizer
-{
-    if (recognizer.state == UIGestureRecognizerStateBegan) {
-        [_photo.playButton setHighlighted:YES];
-    }
-    else if (recognizer.state == UIGestureRecognizerStateChanged) {
-        [_photo.playButton setHighlighted:YES];
-    }
-    else if (recognizer.state == UIGestureRecognizerStateCancelled) {
-        [_photo.playButton setHighlighted:NO];
-    }
-    else if (recognizer.state == UIGestureRecognizerStateEnded) {
-        [_photo.playButton setHighlighted:NO];
-        [_photoBrowser setControlsHidden:NO animated:YES permanent:YES];
-        [_photoBrowser playVideo];
-    }
-    else {
-        [_photo.playButton setHighlighted:NO];
-    }
 }
 
 @end

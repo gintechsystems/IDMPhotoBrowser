@@ -44,6 +44,7 @@ videoURL = _videoURL,
 caption = _caption,
 isVideo = _isVideo,
 isPlaying = _isPlaying,
+playButtonHidden = _playButtonHidden,
 isVideoImageReady = _isVideoImageReady,
 currentSeekTime = _currentSeekTime;
 

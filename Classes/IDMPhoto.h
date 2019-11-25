@@ -29,6 +29,8 @@ typedef void (^IDMProgressUpdateBlock)(CGFloat progress);
 @property (nonatomic) BOOL isVideoImageReady;
 @property (nonatomic) BOOL isPlaying;
 
+@property (nonatomic) BOOL playButtonHidden;
+
 @property (nonatomic, strong) NSURL *photoURL;
 @property (nonatomic, strong) NSURL *videoURL;
 
