@@ -875,12 +875,17 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 - (void)moviePlaybackComplete:(NSNotification *)notification
 {
-    [videoPlayerVC.view setHidden:YES];
-    [videoPlayer pause];
-    
     IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
     
+    [videoPlayer pause];
+    
     photo.isPlaying = NO;
+    
+    [videoPlayer seekToTime:kCMTimeZero];
+    
+    [videoPlayer play];
+    
+    photo.isPlaying = YES;
 }
 
 - (void)moviePlaybackError:(NSNotification *)notification
@@ -899,10 +904,23 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     
     [self presentViewController:alert animated:YES completion:nil];
     
-    [videoPlayerVC.view setHidden:YES];
-    [videoPlayer pause];
+    IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
+    IDMPhoto *scrollViewPhoto = [scrollView photo];
     
     IDMPhoto *photo = [self photoAtIndex:_currentPageIndex];
+    
+    [videoPlayer pause];
+    
+    [videoPlayer seekToTime:kCMTimeZero];
+    
+    [_doneButton setHidden:YES];
+    
+    [[scrollViewPhoto playButton] setHidden:YES];
+    [scrollViewPhoto setPlayButtonHidden:YES];
+    
+    [[scrollView captionView] setAlpha:0];
+    [[scrollView photoImageView] setAlpha:0];
+    [[scrollView topBackgroundView] setAlpha:0];
     
     photo.isPlaying = NO;
 }
