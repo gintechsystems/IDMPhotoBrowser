@@ -25,6 +25,7 @@
 		7D2B79B81FD2501300F2094F /* IDMUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D2B79B71FD2501200F2094F /* IDMUtils.m */; };
 		7D2B79C01FD25B7600F2094F /* PhotoBrowserDemoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D2B79BF1FD25B7600F2094F /* PhotoBrowserDemoTests.m */; };
 		7D2B79C81FD25BF300F2094F /* IDMUtilsTest.m in Sources */ = {isa = PBXBuildFile; fileRef = 7D2B79C71FD25BF300F2094F /* IDMUtilsTest.m */; };
+		BB7F080624571F640047692C /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BB7F080524571F640047692C /* CoreServices.framework */; };
 		D114BB411A32269C00E677FE /* Launch Screen.xib in Resources */ = {isa = PBXBuildFile; fileRef = D114BB401A32269C00E677FE /* Launch Screen.xib */; };
 		D1574968178DB94900B0211A /* IDMCaptionView.m in Sources */ = {isa = PBXBuildFile; fileRef = D157494F178DB94900B0211A /* IDMCaptionView.m */; };
 		D1574969178DB94900B0211A /* IDMPhoto.m in Sources */ = {isa = PBXBuildFile; fileRef = D1574951178DB94900B0211A /* IDMPhoto.m */; };
@@ -50,7 +51,6 @@
 		D1A193581758F37B00CE615F /* libz.1.2.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D1A193561758F37B00CE615F /* libz.1.2.5.dylib */; };
 		D1A193591758F37B00CE615F /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D1A193571758F37B00CE615F /* libz.dylib */; };
 		D1A1935B1758F42300CE615F /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1A1935A1758F42300CE615F /* SystemConfiguration.framework */; };
-		D1A1935D1758F42A00CE615F /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1A1935C1758F42A00CE615F /* MobileCoreServices.framework */; };
 		D1A9ED521DEB684B00C238DA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A9ED511DEB684B00C238DA /* AppDelegate.swift */; };
 		D1A9ED541DEB685F00C238DA /* MenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A9ED531DEB685F00C238DA /* MenuViewController.swift */; };
 		D1B43D551721876000D8B807 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1B43D541721875F00D8B807 /* QuartzCore.framework */; };
@@ -92,6 +92,7 @@
 		7D2B79BF1FD25B7600F2094F /* PhotoBrowserDemoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PhotoBrowserDemoTests.m; sourceTree = "<group>"; };
 		7D2B79C11FD25B7600F2094F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7D2B79C71FD25BF300F2094F /* IDMUtilsTest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = IDMUtilsTest.m; sourceTree = "<group>"; };
+		BB7F080524571F640047692C /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		D00FA320EEACA8C835D9D626 /* Pods-PhotoBrowserDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PhotoBrowserDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-PhotoBrowserDemo/Pods-PhotoBrowserDemo.debug.xcconfig"; sourceTree = "<group>"; };
 		D11464B61802FFC4005B7BC3 /* IDMPBConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IDMPBConstants.h; sourceTree = "<group>"; };
 		D114BB401A32269C00E677FE /* Launch Screen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = "Launch Screen.xib"; sourceTree = "<group>"; };
@@ -142,7 +143,6 @@
 			files = (
 				D1FA3A911805C340000FFE18 /* Security.framework in Frameworks */,
 				D1890F7217C66CA70065C101 /* ImageIO.framework in Frameworks */,
-				D1A1935D1758F42A00CE615F /* MobileCoreServices.framework in Frameworks */,
 				D1A1935B1758F42300CE615F /* SystemConfiguration.framework in Frameworks */,
 				D1A193581758F37B00CE615F /* libz.1.2.5.dylib in Frameworks */,
 				D1A193591758F37B00CE615F /* libz.dylib in Frameworks */,
@@ -151,6 +151,7 @@
 				4C6F979214AF734900F8389A /* UIKit.framework in Frameworks */,
 				4C6F979414AF734900F8389A /* Foundation.framework in Frameworks */,
 				4C6F979614AF734900F8389A /* CoreGraphics.framework in Frameworks */,
+				BB7F080624571F640047692C /* CoreServices.framework in Frameworks */,
 				5736E0DD544CC84515494E76 /* libPods-PhotoBrowserDemo.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -192,6 +193,7 @@
 		4C6F979014AF734900F8389A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				BB7F080524571F640047692C /* CoreServices.framework */,
 				D1A193561758F37B00CE615F /* libz.1.2.5.dylib */,
 				D1A193571758F37B00CE615F /* libz.dylib */,
 				4C6F979514AF734900F8389A /* CoreGraphics.framework */,
