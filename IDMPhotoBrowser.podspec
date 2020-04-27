@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.platform      =  :ios, '10.0'
   s.source_files  =  'Classes/*.{h,m}'
   s.resources     =  'Classes/IDMPhotoBrowser.bundle', 'Classes/IDMPBLocalizations.bundle'
-  s.framework     =  'MessageUI', 'QuartzCore', 'SystemConfiguration', 'Security'
+  s.framework     =  'CoreServices', 'MessageUI', 'QuartzCore', 'SystemConfiguration', 'Security'
   s.requires_arc  =  true
   s.dependency       'SDWebImage'
   s.dependency       'DACircularProgress'

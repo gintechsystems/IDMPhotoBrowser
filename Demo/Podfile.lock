@@ -25,14 +25,14 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   VIMediaCache:
-    :commit: 87f9065cdd45be5c8b0792f0aa4ee06b695e2456
+    :commit: cdaf7ffd012bcd3d208f8b277667f267bdf78f67
     :git: https://github.com/gintechsystems/VIMediaCache.git
 
 SPEC CHECKSUMS:
   DACircularProgress: 4dd437c0fc3da5161cb289e07ac449493d41db71
   pop: d582054913807fd11fd50bfe6a539d91c7e1a55a
   SDWebImage: 97351f6582ceca541ea294ba66a1fcb342a331c2
-  VIMediaCache: aa650f82cb114c68a343beb4e67416cf5eb2f3a2
+  VIMediaCache: d6ec93ebbf9318ae6de6f545a170e09ed69ef7cb
 
 PODFILE CHECKSUM: 023fcfe3b0c60e682d36c0155916effb55649dcc
 
