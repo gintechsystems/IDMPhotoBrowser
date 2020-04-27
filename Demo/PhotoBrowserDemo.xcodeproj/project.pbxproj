@@ -127,7 +127,6 @@
 		D1A193561758F37B00CE615F /* libz.1.2.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.5.dylib; path = usr/lib/libz.1.2.5.dylib; sourceTree = SDKROOT; };
 		D1A193571758F37B00CE615F /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		D1A1935A1758F42300CE615F /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
-		D1A1935C1758F42A00CE615F /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		D1A9ED501DEB684B00C238DA /* PhotoBrowserDemo-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PhotoBrowserDemo-Bridging-Header.h"; sourceTree = "<group>"; };
 		D1A9ED511DEB684B00C238DA /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D1A9ED531DEB685F00C238DA /* MenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuViewController.swift; sourceTree = "<group>"; };
@@ -200,7 +199,6 @@
 				4C6F979314AF734900F8389A /* Foundation.framework */,
 				D1890F7117C66CA70065C101 /* ImageIO.framework */,
 				4C6F97C814AF750400F8389A /* MessageUI.framework */,
-				D1A1935C1758F42A00CE615F /* MobileCoreServices.framework */,
 				D1B43D541721875F00D8B807 /* QuartzCore.framework */,
 				D1FA3A901805C340000FFE18 /* Security.framework */,
 				D1A1935A1758F42300CE615F /* SystemConfiguration.framework */,
