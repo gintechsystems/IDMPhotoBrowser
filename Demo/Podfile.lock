@@ -1,16 +1,16 @@
 PODS:
   - DACircularProgress (2.3.1)
   - pop (1.0.12)
-  - SDWebImage (5.0.6):
-    - SDWebImage/Core (= 5.0.6)
-  - SDWebImage/Core (5.0.6)
+  - SDWebImage (5.7.3):
+    - SDWebImage/Core (= 5.7.3)
+  - SDWebImage/Core (5.7.3)
   - VIMediaCache (0.4)
 
 DEPENDENCIES:
   - DACircularProgress
   - pop
   - SDWebImage
-  - VIMediaCache (from `https://github.com/shannonchou/VIMediaCache.git`, branch `develop`)
+  - VIMediaCache (from `https://github.com/gintechsystems/VIMediaCache.git`, branch `develop`)
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
@@ -21,19 +21,19 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   VIMediaCache:
     :branch: develop
-    :git: https://github.com/shannonchou/VIMediaCache.git
+    :git: https://github.com/gintechsystems/VIMediaCache.git
 
 CHECKOUT OPTIONS:
   VIMediaCache:
     :commit: 87f9065cdd45be5c8b0792f0aa4ee06b695e2456
-    :git: https://github.com/shannonchou/VIMediaCache.git
+    :git: https://github.com/gintechsystems/VIMediaCache.git
 
 SPEC CHECKSUMS:
   DACircularProgress: 4dd437c0fc3da5161cb289e07ac449493d41db71
   pop: d582054913807fd11fd50bfe6a539d91c7e1a55a
-  SDWebImage: 920f1a2ff1ca8296ad34f6e0510a1ef1d70ac965
+  SDWebImage: 97351f6582ceca541ea294ba66a1fcb342a331c2
   VIMediaCache: aa650f82cb114c68a343beb4e67416cf5eb2f3a2
 
-PODFILE CHECKSUM: ec821315ec37db946e8e22a440222dad82299a8a
+PODFILE CHECKSUM: 023fcfe3b0c60e682d36c0155916effb55649dcc
 
-COCOAPODS: 1.8.4
+COCOAPODS: 1.9.1

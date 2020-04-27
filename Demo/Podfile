@@ -10,6 +10,6 @@ target "PhotoBrowserDemo" do
 pod 'DACircularProgress'
 pod 'pop'
 pod 'SDWebImage'
-pod 'VIMediaCache', :git => 'https://github.com/shannonchou/VIMediaCache.git', :branch => 'develop'
+pod 'VIMediaCache', :git => 'https://github.com/gintechsystems/VIMediaCache.git', :branch => 'develop'
 
 end
